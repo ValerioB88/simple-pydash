@@ -19,7 +19,7 @@ To install you can _either_:
 The best way to getting started is to take a look at the example: `examples/canvas_and_charts.py`. 
 
 Run it with:
-`cd {repo folder}; python -m examples.canvas_and_charts.py`. The script will try to use the first available port starting at `8000`. Open your browser at `localhost:8000` (or the used port, indicated in the output of the console).
+`cd {repo folder}; python -m examples.canvas_and_charts`. The script will try to use the first available port starting at `8000`. Open your browser at `localhost:8000` (or the used port, indicated in the output of the console).
 
 **If you are running the script on a server**, you need to do port forwarding. Open a new terminal on your local machine and type `ssh -L {portnum}:localhost:{portnum} {username}@{machinename}`, e.g. `ssh -L 8000:localhost:8000 val@titan.it`. Then open the browser at `localhost:8000`, and you should see the dashboard.
 
