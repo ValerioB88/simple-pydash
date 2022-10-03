@@ -1,12 +1,14 @@
 from gym_browser_dashboard.server import CustomAPI
 import uvicorn
-from gym_browser_dashboard.modules.canvas import RenderGymEnv, RenderRandomMatrix
+from gym_browser_dashboard.modules.canvas import RenderGymEnv, RenderRandomMatrix, StaticImage
 from gym_browser_dashboard.modules.line_plot import InputObservationChart, DiscreteActionChart
 from matplotlib import colors
 import gym
 import numpy as np
 from gym_browser_dashboard.model import Model
+import PIL.Image as Image
 newgym = int(gym.__version__.split('.')[1]) > 25
+
 
 class DummyGymModel(Model):
     action = 0
@@ -31,6 +33,7 @@ model = DummyGymModel
 
 env = gym.make("CartPole-v1", render_mode='rgb_array')
 
+######################## Declare Modules #########################
 obs_chart = InputObservationChart(
     [{"Label": "Cart Pos", "Color": colors.to_hex("red")},
      {"Label": "Cart Vel", "Color": colors.to_hex("green")},
@@ -40,11 +43,15 @@ obs_chart = InputObservationChart(
 
 action_chart = DiscreteActionChart(
     [{"Label": "Action", "Color": colors.to_hex("red")}])
+render_img = StaticImage(img=Image.open('panzi.jpg'), location='left', width=160, height=110)
 
 render_gym_canvas = RenderGymEnv()
 random_matrix = RenderRandomMatrix()
+
+##################################################################
+
 model_params = dict(env=env)  # add any other initialization parameters here
-server = CustomAPI(model, [render_gym_canvas, obs_chart, action_chart, random_matrix], model_params)
+server = CustomAPI(model, [render_gym_canvas,  random_matrix, render_img, obs_chart, action_chart], model_params)
 
 if __name__ == "__main__":
     connected = False

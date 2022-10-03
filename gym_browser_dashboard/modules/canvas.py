@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from gym_browser_dashboard.modules.module import Module
 import abc
+import PIL.Image
 
 def fig2PIL(fig):
     """Convert a Matplotlib figure to a PIL Image and return it"""
@@ -24,18 +25,22 @@ def PIL2base64(image):
     image = str(b64img)[2:-2].replace('=', '')
     return image
 
+def convertBoolPython2js(b):
+    return 'true' if b else 'false'
 
 class Canvas(Module, abc.ABC):
     local_includes = [os.path.dirname(__file__) + "/Canvas.js"]
     package_includes = []
     portrayal_method = None
 
-    def __init__(self, id=None, width=120, height=80):
+    def __init__(self, id=None, width=480, height=320, location='center', add_checkbox=True):
         self.id = id
+        self.location = location
         if self.id is None:
             self.id = np.random.randint(0, 1000)
         self.canvas_width, self.canvas_height = width, height
-        new_element = f"new Canvas({self.id},{self.canvas_width}, {self.canvas_height})"
+
+        new_element = f"new Canvas({self.id},{self.canvas_width}, {self.canvas_height}, '{self.location}', {'true' if add_checkbox else 'false'})"
         self.js_code = "elements.push(" + new_element + ");"
         super().__init__()
 
@@ -71,3 +76,15 @@ class RenderRandomMatrix(Canvas):
 
         canvas = fig2PIL(self.fig)
         return PIL2base64(canvas)
+
+
+class StaticImage(Canvas):
+    rendered = False
+    def __init__(self, img: PIL.Image, **kwargs):
+        self.img = img
+        super().__init__(add_checkbox=False, **kwargs)
+
+    def render(self, model):
+        if not self.rendered:
+            self.rendered = True
+            return PIL2base64(self.img)

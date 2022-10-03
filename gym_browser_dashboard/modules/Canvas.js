@@ -1,23 +1,21 @@
-var ContinuousVisualization = function(canvas, context, w, h, imgid) {
-	this.draw = function(objects) {
-		img = document.getElementById(imgid)
-		img.src = "data:image/png;charset=utf-8;base64," + objects;
-	};
-};
-
-var Canvas = function(id, penv_width, penv_height) {
+var Canvas = function(id, penv_width, penv_height, location, add_checkb) {
 	let imgid = "img" + id
-	var canvas_tag = "<img src='' width='480'  height='320' id=" + imgid + ">"
+	var canvas_tag = "<img src='' width='" + penv_width  + "' height='" + penv_height + "' id=" + imgid + ">"
 	var canvas = $(canvas_tag)[0];
-
-	$("#elements").append(canvas);
-	let context = null // canvas.getContext("2d");
-	let canvasDraw = new ContinuousVisualization(canvas, context, penv_width, penv_height, imgid);
-	add_checkbox("checkbox" + id, "Render", "elements")
+	location = location + 'Col'
+	$("#" + location).append(canvas);
+	var add_ch = add_checkb
+	if (add_ch)
+	{
+		add_checkbox("checkbox" + id, "Render", "#" + location)
+	}
 
 	this.render = function(data) {
-		if (document.getElementById("checkbox" + id).checked)
-			canvasDraw.draw(data)
+		if (!add_ch || (add_ch && document.getElementById("checkbox" + id).checked))
+		{
+			img = document.getElementById(imgid)
+			img.src = "data:image/png;charset=utf-8;base64," + data;
+		}
 	};
 
 

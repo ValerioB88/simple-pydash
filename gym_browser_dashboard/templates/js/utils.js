@@ -7,7 +7,7 @@ var add_checkbox = function(id, label, elementid, start_checked=true, classtype=
 		'                    <input id="' + id  + '"' + (start_checked? ' checked':'') + '  type="checkbox"/>\n' +
 		'\n' +
 		'                </div></div>'
-	$("#" + elementid).append($(c)[0])
+	$(elementid).append($(c)[0])
 
 	return c
 

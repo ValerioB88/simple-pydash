@@ -54,9 +54,9 @@ To plot stuff in the browser you use `Modules`. I provide some basic ones in `mo
 The `Canvas` and `LinePlot` modules are highly flexible. In fact, you can do most stuff by just subclassing on of the two. 
 
 #### Canvas
-The `Canvas` module plots an image in the middle of the page. This could be the openAI rendering (`RenderGymEnv` module) or any other image (e.g. a matplotlib figure, `RandomMatrix` in the example).
+The `Canvas` module plots an image in the middle of the page. This could be the openAI rendering (`RenderGymEnv` module) or any other image (e.g. a matplotlib figure, `RandomMatrix` in the example). You can also plot a `StaticImage` which won't be updated. 
 
-You can see how simple is to plot something new by looking at the `RenderGymEnv` class: 
+Writing new `Canvas` is extremely easy. You can see how simple is to plot something new by looking at the `RenderGymEnv` class: 
 
 ```python
 class RenderGymEnv(Canvas):
@@ -68,6 +68,8 @@ class RenderGymEnv(Canvas):
 
 
 The `Canvas` module always expects the render output to be a `base64` string. You can convert a PIL image with `PIL2base64`. If you have a matplotlib fiugre use the `fig2PIL` and then the `PIL2base64` (as in the `RandomMatrix` class).
+
+You can also decide where to put the each canvas with the `location` parameter (not implemented for `LinePlot` yet).
 
 #### LinePlot
 The `LinePlot` modules places line plots on the right side of the page. I use [Chart.js](https://www.chartjs.org/), and I provide a couple of pre-made lineplots: one for plotting the observations and the other for plotting the taken action. 

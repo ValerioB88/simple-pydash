@@ -80,7 +80,13 @@ function ModelController(tick = 0, running = false, finished = false) {
      */
     this.render = function render(data) {
         if (document.getElementById("global_renderer").checked) {
-           vizElements.forEach((element, index) => element.render(data[index]));
+            for (let [index, element] of vizElements.entries()) {
+                if (data[index] != null) {
+                    element.render(data[index])
+                }
+
+                // vizElements.forEach((element, index) => element.render(data[index]));
+            }
         }
 
         if (this.running) {
