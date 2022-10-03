@@ -77,3 +77,5 @@ class InputObservationChart(LinePlot):
     def render(self, model):
         return model.obs.tolist()
 ```
+### Acknowledgement
+I used as a template for some of the html/js code from [Mesa](https://mesa.readthedocs.io/en/latest/) which is however written in [tornado](https://www.tornadoweb.org/en/stable/). However studying mesa code has been incredibly useful in the process. 
