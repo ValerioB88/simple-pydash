@@ -78,4 +78,4 @@ class InputObservationChart(LinePlot):
         return model.obs.tolist()
 ```
 ### Acknowledgement
-I used as a template for some of the html/js code from [Mesa](https://mesa.readthedocs.io/en/latest/) which is however written in [tornado](https://www.tornadoweb.org/en/stable/). However studying mesa code has been incredibly useful in the process. 
+To develop the UI, I learnt a lot from the [Mesa](https://mesa.readthedocs.io/en/latest/) project, which is however written in [tornado](https://www.tornadoweb.org/en/stable/). You can still see the Mesa footprint in the UI layout :)
