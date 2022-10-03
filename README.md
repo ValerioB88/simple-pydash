@@ -6,7 +6,7 @@ This is _not_ designed to be used during training, but as a tool for analysing t
 It uses [FastAPI](https://fastapi.tiangolo.com/) web framework and plots stuff through [WebSocketing](https://en.wikipedia.org/wiki/WebSocket). WebSocket uses TCP so you might get some lag. Feel free to re-make this with webRTC if you fancy!
 
 ### Installation
-Requirements: `pip install fastapi "uvicorn[standard] gym"`
+Requirements: `pip install fastapi "uvicorn[standard]" gym`
 
 
 To install you can _either_:
