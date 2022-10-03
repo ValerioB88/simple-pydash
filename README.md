@@ -1,6 +1,6 @@
 ## Gym Browser Dashboard
 <img src="demo.gif">
-A simple extendable dashboard for OpenAI Gym that runs directly in the browser. Ideal for headless servers.
+A simple and modular dashboard for OpenAI Gym that runs directly in the browser. Ideal for headless servers.
 This is _not_ designed to be used during training, but as a tool for analysing the behaviour of some agents in details, through the help of dynamic visualization.
 
 It uses [FastAPI](https://fastapi.tiangolo.com/) web framework and plots stuff through [WebSocketing](https://en.wikipedia.org/wiki/WebSocket). WebSocket uses TCP so you might get some lag. Feel free to re-make this with webRTC if you fancy!
