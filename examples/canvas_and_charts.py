@@ -1,11 +1,11 @@
-from gym_browser_dashboard.server import CustomAPI
+from browser_dashboard.server import CustomAPI
 import uvicorn
-from gym_browser_dashboard.modules.canvas import RenderGymEnv, RenderRandomMatrix, StaticImage
-from gym_browser_dashboard.modules.line_plot import AddLineChart
+from browser_dashboard.modules.canvas import RenderGymEnv, RenderRandomMatrix, StaticImage
+from browser_dashboard.modules.line_plot import AddLineChart
 from matplotlib import colors
 import gym
 import numpy as np
-from gym_browser_dashboard.model import Model
+from browser_dashboard.model import Model
 import PIL.Image as Image
 newgym = int(gym.__version__.split('.')[1]) > 25
 

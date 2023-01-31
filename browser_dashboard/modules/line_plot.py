@@ -1,7 +1,7 @@
 from typing import Callable
 import json
 import os
-from gym_browser_dashboard.modules.module import Module
+from browser_dashboard.modules.module import Module
 import abc
 from typing import List
 import numpy as np
@@ -95,6 +95,9 @@ class AddLineChart(LinePlot):
     [DATASETS [LINEPLOTS [VALUES] ] ]
     action_chart = AddLineChart(series=[{"Label": "A1", "Color": colors.to_hex("blue")}, {"Label": "A2", "Color": colors.to_hex("red")}], render=lambda model: [[1, 2, 20], [1, 2]], title='Action')
     lambda model: [1, 2, 3, 4], title='Hi') also works, for 4 datasets
+
+    Also
+    action_chart = AddLineChart(names=['A1', 'A2'], render=lambda model: [[1, 2, 20], [1, 2]], title='Action')
     e.g.
     """
 

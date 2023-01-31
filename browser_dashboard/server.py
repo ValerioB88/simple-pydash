@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import json
-from gym_browser_dashboard.model import Model
+from browser_dashboard.model import Model
 import inspect
 import numpy as np
 
@@ -16,12 +16,14 @@ class CustomAPI(FastAPI):
     def init_iter(self):
         if self.model:
             self.model.stop()
-        self.model = self.model_obj(**self.model_params)
-        assert inspect.isgeneratorfunction(self.model.__iter__), "Model.__iter__() needs to return generator function (must contain a yield somewhere)."
+        self.model = self.model_obj(seed=self.seed, gfx=True, **self.model_params)
+        # assert inspect.isgeneratorfunction(self.model.__iter__), "Model.__iter__() needs to return generator function (must contain a yield somewhere)."
         iterator = iter(self.model)
         return iterator
 
-    def __init__(self, model_obj: Model, vis_modules, model_params=None, update_gfx_every_x_steps=1):
+    def __init__(self, model_obj: Model, vis_modules, model_params=None, update_gfx_every_x_steps=1, fast_forward_update=100):
+        self.seed = 0
+        self.fast_forward_update = fast_forward_update
         self.update_gfx_every_x_steps = update_gfx_every_x_steps
         self.model_obj = model_obj
         self.model_params = model_params if model_params is not None else {}
@@ -62,13 +64,19 @@ class CustomAPI(FastAPI):
                 msg = json.loads(msg)
 
                 if msg["type"] == 'get_step':
-                    [next(self.iterator) for _ in range(self.update_gfx_every_x_steps)]
+
+                    self.model.gfx = False
+                    [next(self.iterator) for _ in range(self.update_gfx_every_x_steps-1)]
+                    self.model.gfx = True
+                    next(self.iterator)
+
                     viz_messages = self.viz_state_message()
                     self.after_step(self.model)
                     await websocket.send_json(viz_messages)
 
                 elif msg["type"] == 'reset':
                     [i.reset() for i in self.vis_modules]
+                    self.seed += 1
                     self.iterator = self.init_iter()
                     await websocket.send_json(self.viz_state_message())
 
@@ -81,7 +89,7 @@ class CustomAPI(FastAPI):
                     if inspect.isawaitable(result):
                         await result
                 elif msg["type"] == "switch_fast":
-                    self.update_gfx_every_x_steps = 100 if self.update_gfx_every_x_steps == 1 else 1
+                    self.update_gfx_every_x_steps = self.fast_forward_update if self.update_gfx_every_x_steps == 1 else 1
                 else:
                     result = self.other_message(websocket, msg)
                     if inspect.isawaitable(result):

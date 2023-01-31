@@ -9,12 +9,17 @@ This is _not_ designed to be used during training, but as a tool for analysing t
 
 It uses [FastAPI](https://fastapi.tiangolo.com/) web framework and plots stuff through [WebSocketing](https://en.wikipedia.org/wiki/WebSocket). WebSocket uses TCP so you might get some lag. Feel free to re-make this with webRTC if you fancy!
 
+#### Requirements:
+`pip install fastapi "uvicorn[standard]"`
+
+I suggest also installing `gym` if you want to try the example:
+
+`pip install gym`
+
+
 ### Installation
-Requirements: `pip install fastapi "uvicorn[standard]" gym`
-
-
 To install you can _either_:
-- run `pip install git+https://github.com/ValerioB88/gym-browser-dashboard.git`
+- run `pip install git+https://github.com/ValerioB88/browser-dashboard.git`
 
 **OR**
 - clone/fork the repo, then install in editable mode (do this if you plan to change stuff): `pip -e {cloned folder}`  
@@ -30,7 +35,7 @@ Run it with:
 **TIP**: if the simulation seems to lag, try to hit `Reset` on the dashboard once. For some reason the first run is laggy, then it goes pretty smooth.
 
 ### Model
-To run your own agent and your own gym environment, you need to wrap both of them in a subclass of `Model`. This must contain the methods `__iter__` and `stop`. Critically, `__iter__` needs to return an iterator. This is an example of a model for any gym environment (passed through the `env` parameter):
+To run your own agent and your own environment (in this example is a gym environment,but doesn't need to), you need to wrap both of them in a subclass of `Model`. This must contain the methods `__iter__` and `stop`. Critically, `__iter__` needs to return an iterator. This is an example of a model for any gym environment (passed through the `env` parameter):
 
 ```python
 class DummyGymModel(Model):

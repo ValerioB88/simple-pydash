@@ -4,7 +4,7 @@ import base64
 from io import BytesIO
 import matplotlib.pyplot as plt
 import numpy as np
-from gym_browser_dashboard.modules.module import Module
+from browser_dashboard.modules.module import Module
 import abc
 import PIL.Image
 
