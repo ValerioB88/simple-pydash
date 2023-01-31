@@ -1,6 +1,10 @@
-## Gym Browser Dashboard
+## Browser Dashboard
 <img src="demo.gif">
-A simple and modular dashboard for OpenAI Gym that runs directly in the browser. Ideal for headless servers.
+
+A simple and modular dashboard that runs directly in the browser. Ideal for headless servers.
+This was designed to be used in conjunction with OpenAI Gym Environments. However, I have now used many times with in totally different scenario, so I am dropping the "Gym" from the name. You can still use it with Gym Envs if you want to! But you can do much more with this.
+
+
 This is _not_ designed to be used during training, but as a tool for analysing the behaviour of some agents in details, through the help of dynamic visualization.
 
 It uses [FastAPI](https://fastapi.tiangolo.com/) web framework and plots stuff through [WebSocketing](https://en.wikipedia.org/wiki/WebSocket). WebSocket uses TCP so you might get some lag. Feel free to re-make this with webRTC if you fancy!
@@ -26,7 +30,7 @@ Run it with:
 **TIP**: if the simulation seems to lag, try to hit `Reset` on the dashboard once. For some reason the first run is laggy, then it goes pretty smooth.
 
 ### Model
-To run your own agent and your own gym environment, you need to wrap both of them in a subclass of `Model`. This must contain the methods `step` and `stop`. Critically, `step` needs to be a generator function:
+To run your own agent and your own gym environment, you need to wrap both of them in a subclass of `Model`. This must contain the methods `__iter__` and `stop`. Critically, `__iter__` needs to return an iterator. This is an example of a model for any gym environment (passed through the `env` parameter):
 
 ```python
 class DummyGymModel(Model):
@@ -35,7 +39,7 @@ class DummyGymModel(Model):
         self.env = env
         self.obs, _ = self.env.reset()
 
-    def step(self):
+    def __iter__(self):
         while True:
             self.action = np.random.randint(0, 2)
             self.obs, _, termination, _, _ = env.step(self.action)
@@ -72,12 +76,11 @@ The `Canvas` module always expects the render output to be a `base64` string. Yo
 You can also decide where to put the each canvas with the `location` parameter (not implemented for `LinePlot` yet).
 
 #### LinePlot
-The `LinePlot` modules places line plots on the right side of the page. I use [Chart.js](https://www.chartjs.org/), and I provide a couple of pre-made lineplots: one for plotting the observations and the other for plotting the taken action. 
-For example, here is the `InputObservationChart`. Notice that the output of render must be a list (a numpy array won't do it).
+The `LinePlot` module produces line plots, but it can also produce scatter plots if `show_lines` parameters is set to `False`. I use [Chart.js](https://www.chartjs.org/), and I provide a couple of pre-made lineplots: one for plotting the observations and the other for plotting the taken action. The `LinePlot` Javascript object expects the data to be in the format `[[{'x': 0, 'y': 1}, {'x': 10, 'y': 1}]]`, where the nested list is used because you can potentially have multiple lines in the same plot. You can either return this format directly or use the `AddLineChart` object, which will assume that each time you pass values to render, the `x` step needs to be incremented. You can use it in this way:
 ```python
-class InputObservationChart(LinePlot):
-    def render(self, model):
-        return model.obs.tolist()
+AddLineChart(names=['action'], render=lambda m: [m.action], location='right')
 ```
+
+
 ### Acknowledgement
 To develop the UI, I learnt a lot from the [Mesa](https://mesa.readthedocs.io/en/latest/) project, which is however written in [tornado](https://www.tornadoweb.org/en/stable/). You can still see the Mesa footprint in the UI layout :)

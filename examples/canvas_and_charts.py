@@ -40,9 +40,7 @@ server = CustomAPI(model, [RenderGymEnv(width=480, height=320),
                            StaticImage(img=Image.open('panzi.jpg'), location='left',  height=110),
                            AddLineChart(names=['Cart Pos', 'Cart Vel', 'Pole Angle', 'Pole Angle Vel'],
                                         render=lambda m: m.obs.tolist(), location='right'),
-                           AddLineChart(series=
-                                        [{"Label": "Action", "Color": colors.to_hex("red")}],
-                                        render=lambda m: [m.action], location='right')
+                           AddLineChart(names=['action'], render=lambda m: [m.action], location='right')
                            ], model_params)
 
 if __name__ == "__main__":

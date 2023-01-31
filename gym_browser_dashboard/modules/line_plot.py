@@ -29,6 +29,19 @@ class LinePlot(Module, abc.ABC):
             location='left',
             title=''
     ):
+        """
+
+        :param series: A list in the form of [{"Label": "Action", "Color": colors.to_hex("red")}, ...],
+        :param names: Alternatively, use just names, and let the color by chosen automatically. names=['action', 'position', ...]
+        :param show_lines: A list of booleans indicating whether the line will be shown. If you have 3 series/names, you need a 3 element list: show_lines=[False, False, True]
+        :param colors:
+        :param replace:
+        :param height:
+        :param xmax: the maximum number of steps shown in the plot, after which it will "slide".
+        :param width:
+        :param location: 'left' or 'right'
+        :param title:
+        """
         assert series or names, "Please specify either the series or the name tags"
         if series is None:
             if show_lines is None:
