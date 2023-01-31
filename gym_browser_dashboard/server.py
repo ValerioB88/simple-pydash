@@ -1,3 +1,4 @@
+
 from fastapi import WebSocket
 import os
 from fastapi import FastAPI, Request
@@ -7,6 +8,8 @@ from fastapi.templating import Jinja2Templates
 import json
 from gym_browser_dashboard.model import Model
 import inspect
+import numpy as np
+
 class CustomAPI(FastAPI):
     model = None
 
@@ -14,13 +17,14 @@ class CustomAPI(FastAPI):
         if self.model:
             self.model.stop()
         self.model = self.model_obj(**self.model_params)
-        assert inspect.isgeneratorfunction(self.model.step), "Model.step() needs to be a generator function (must contain a yield somewhere)."
-        iterator = self.model.step()
+        assert inspect.isgeneratorfunction(self.model.__iter__), "Model.__iter__() needs to return generator function (must contain a yield somewhere)."
+        iterator = iter(self.model)
         return iterator
 
-    def __init__(self, model_obj: Model, vis_modules, model_params):
+    def __init__(self, model_obj: Model, vis_modules, model_params=None, update_gfx_every_x_steps=1):
+        self.update_gfx_every_x_steps = update_gfx_every_x_steps
         self.model_obj = model_obj
-        self.model_params = model_params
+        self.model_params = model_params if model_params is not None else {}
         self.local_includes = []
         self.js_code = []
         self.vis_modules = vis_modules
@@ -50,29 +54,54 @@ class CustomAPI(FastAPI):
         @self.websocket("/ws")
         async def websocket_endpoint(websocket: WebSocket):
             await websocket.accept()
+            viz_messages = self.viz_state_message()
+            await websocket.send_json(viz_messages)
+
             while True:
                 msg = await websocket.receive_text()
                 msg = json.loads(msg)
 
                 if msg["type"] == 'get_step':
-                    next(self.iterator)
-                    await websocket.send_json(self.viz_state_message)
+                    [next(self.iterator) for _ in range(self.update_gfx_every_x_steps)]
+                    viz_messages = self.viz_state_message()
+                    self.after_step(self.model)
+                    await websocket.send_json(viz_messages)
 
                 elif msg["type"] == 'reset':
+                    [i.reset() for i in self.vis_modules]
                     self.iterator = self.init_iter()
-                    await websocket.send_json(self.viz_state_message)
+                    await websocket.send_json(self.viz_state_message())
 
                 elif msg["type"] == "close_socket":
                     print("Not Implemented Yet")
-                    await websocket.send_json(self.viz_state_message)
+                    await websocket.send_json(self.viz_state_message())
 
+                elif msg["type"] == "keyboard_command":
+                    result = self.keyboard_command(websocket, msg["command"])
+                    if inspect.isawaitable(result):
+                        await result
+                elif msg["type"] == "switch_fast":
+                    self.update_gfx_every_x_steps = 100 if self.update_gfx_every_x_steps == 1 else 1
+                else:
+                    result = self.other_message(websocket, msg)
+                    if inspect.isawaitable(result):
+                        await result
 
-    @property
-    def viz_state_message(self):
+    def keyboard_command(self, websocket, key):
+        return None
+
+    def other_message(self, websocket, msg):
+        return None
+
+    def after_step(self, model):
+        return None
+
+    def viz_state_message(self, step=True, only_update=None):
         viz_state = []
         ## Update all viz modules
         for vis_mod in self.vis_modules:
-            viz_state.append(vis_mod.render(self.model))
-        return {'type': 'viz_state', 'data': viz_state}
-
-
+            if only_update is None or np.any([isinstance(vis_mod, i) for i in only_update]):
+                viz_state.append(vis_mod.render(self.model))
+            else:
+                viz_state.append([])
+        return {'type': f'viz_state_{"step" if step else "nostep"}', 'data': viz_state}
