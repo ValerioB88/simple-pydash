@@ -15,7 +15,6 @@ const startModelButton = document.getElementById("play-pause");
 const stepModelButton = document.getElementById("step");
 const resetModelButton = document.getElementById("reset");
 const closeSocketButton = document.getElementById("close-socket");
-const stepDisplay = document.getElementById("currentStep");
 
 
 /**
@@ -49,14 +48,21 @@ function ModelController(tick = 0, running = false, finished = false) {
      * after the visualization elements are rendered. */
     this.step = function step() {
         this.tick += 1;
-        stepDisplay.innerText = this.tick;
+        document.addEventListener("keydown",
+            function onEvent(event) {
+                console.log("PRESSED" + event.key)
+                if (event.key === "f") {
+                    send({"type": "switch_fast"})
+                }
+            })
+        // stepDisplay.innerText = this.tick;
         send({ type: "get_step", step: this.tick });
     }
 
     /** Reset the model and visualization state but keep its running state */
     this.reset = function reset() {
         this.tick = 0;
-        stepDisplay.innerText = this.tick;
+        // stepDisplay.innerText = this.tick;
         // Reset all the visualizations
         vizElements.forEach(element => element.reset());
         if (this.finished) {
@@ -67,6 +73,9 @@ function ModelController(tick = 0, running = false, finished = false) {
         send({ type: "reset" });
     }
 
+    this.reset_viz = function reset_viz() {
+        vizElements.forEach(element => element.reset());
+    }
     /** Stops the model and put it into a finished state */
     this.done = function done() {
         this.stop();
@@ -78,7 +87,7 @@ function ModelController(tick = 0, running = false, finished = false) {
      * Render visualisation elements with new data.
      * @param {any[]} data Model state data passed to the visualization elements
      */
-    this.render = function render(data) {
+    this.render = function render(data, step=true) {
         if (document.getElementById("global_renderer").checked) {
             for (let [index, element] of vizElements.entries()) {
                 if (data[index] != null) {
@@ -89,7 +98,7 @@ function ModelController(tick = 0, running = false, finished = false) {
             }
         }
 
-        if (this.running) {
+        if (this.running && step) {
             this.step()
             //this.timeout = setTimeout(() => this.step(), 1000 / this.fps);
         }
@@ -97,8 +106,6 @@ function ModelController(tick = 0, running = false, finished = false) {
 
 
 }
-
-
 
 /*
  * Button logic for start, stop and reset buttons
@@ -111,6 +118,9 @@ startModelButton.onclick = () => {
     }
 };
 stepModelButton.onclick = () => {
+    controller.running = false
+    startModelButton.firstElementChild.innerText = "Start";
+
     if (!controller.running & !controller.finished) {
         controller.step();
     }
@@ -140,9 +150,12 @@ const ws = new WebSocket(
 ws.onmessage = function (message) {
     const msg = JSON.parse(message.data);
     switch (msg["type"]) {
-        case "viz_state":
+        case "viz_state_step":
             // Update visualization state
-            controller.render(msg["data"])
+            controller.render(msg["data"], step=true)
+            break;
+        case "viz_state_nostep":
+            controller.render(msg["data"], step=false)
             break;
         case "end":
             // We have reached the end of the model
@@ -151,7 +164,13 @@ ws.onmessage = function (message) {
         case "model_params":
             // Create GUI elements for each model parameter and reset everything
             initGUI(msg["params"]);
-           // controller.reset();
+            // controller.reset();
+            break;
+        case "UI_action":
+            if (msg["data"] === "reset_viz_and_step")
+                this.tick = 0
+            controller.reset_viz()
+            controller.step()
             break;
         default:
             // There shouldn't be any other message
@@ -169,6 +188,14 @@ const send = function (message) {
     ws.send(msg);
 };
 
+document.addEventListener("keydown",
+    function onEvent(event) {
+        console.log("PRESSED")
+        send({
+            "type": "keyboard_command",
+            "command": event.key
+        })
+    })
 
 /*
  * GUI initialization (for input parameters)

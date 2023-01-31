@@ -3,7 +3,7 @@ import abc
 
 class Model(abc.ABC):
     @abc.abstractmethod
-    def step(self):
+    def __iter__(self):
         while True:
             yield None
 

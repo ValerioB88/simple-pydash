@@ -7,6 +7,14 @@
     <link href="/static/css/bootstrap-slider.min.css" type="text/css" rel="stylesheet" />
     <link href="/static/css/visualization.css" type="text/css" rel="stylesheet" />
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script src="/static/js/bootstrap-switch.min.js"></script>
+<script src="/static/js/bootstrap-slider.min.js"></script>
+<script src="/static/js/utils.js"></script>
+
 </head>
 <body>
 <nav class="navbar navbar-inverse navbar-static-top">
@@ -38,30 +46,23 @@
     </div>
 </nav>
 <div class="container">
-    <div class="col-xs-2" id="leftCol">
-        <div class="container">
+    <div class="col-xs-6" id="leftCol">
             <div class="input-group input-group-lg">
                 <label class="label label-primary" style="margin-right: 15px">Global Renderer</label>
-                <input id="global_renderer" checked type="checkbox"/>
+                <input id="global_renderer" checked type="checkbox" style="vertical-align:text-bottom"/>
             </div>
-        </div>
     </div>
-    <div class="col-xs-6" id="centerCol">
-        <div class="row">
-            <div id="elements-topbar">
-                <div class="input-group input-group-lg">
-                    <p>Current Step: <span id="currentStep">0</span> </p>
-                </div>
-            </div>
-        </div>
+<!--    <div class="col-xs-6" id="centerCol">-->
+<!--        <div class="row">-->
+<!--            <div id="elements-topbar">-->
+<!--                <div class="input-group input-group-lg">-->
+<!--                    <p>Current Step: <span id="currentStep">0</span> </p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+    <div class="col-xs-6" id="rightCol">
     </div>
-    <div class="col-xs-4" id="rightCol">
-    </div>
-<script src="/static/js/jquery.min.js"></script>
-<script src="/static/js/bootstrap.min.js"></script>
-<script src="/static/js/bootstrap-switch.min.js"></script>
-<script src="/static/js/bootstrap-slider.min.js"></script>
-<script src="/static/js/utils.js"></script>
 
 
 </div>
