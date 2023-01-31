@@ -25,27 +25,28 @@ def PIL2base64(image):
     image = str(b64img)[2:-2].replace('=', '')
     return image
 
-def convertBoolPython2js(b):
-    return 'true' if b else 'false'
+def check_none(x):
+    return x if x is not None else 'null'
 
 class Canvas(Module, abc.ABC):
     local_includes = [os.path.dirname(__file__) + "/Canvas.js"]
-    package_includes = []
-    portrayal_method = None
 
-    def __init__(self, id=None, width=480, height=320, location='center', add_checkbox=True):
+    def __init__(self, id=None, width=None, height=None, location='left', add_checkbox=False):
         self.id = id
         self.location = location
         if self.id is None:
             self.id = np.random.randint(0, 1000)
         self.canvas_width, self.canvas_height = width, height
 
-        new_element = f"new Canvas({self.id},{self.canvas_width}, {self.canvas_height}, '{self.location}', {'true' if add_checkbox else 'false'})"
+        new_element = f"new Canvas({check_none(self.id)}," \
+                      f"{check_none(self.canvas_width)}," \
+                      f"{check_none(self.canvas_height)}, " \
+                      f"'{self.location}', {'true' if add_checkbox else 'false'})"
         self.js_code = "elements.push(" + new_element + ");"
         super().__init__()
 
     @abc.abstractmethod
-    def render(self) -> str:
+    def render(self, model) -> str:
         pass
 
 class RenderGymEnv(Canvas):

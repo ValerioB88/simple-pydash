@@ -1,7 +1,7 @@
 from gym_browser_dashboard.server import CustomAPI
 import uvicorn
 from gym_browser_dashboard.modules.canvas import RenderGymEnv, RenderRandomMatrix, StaticImage
-from gym_browser_dashboard.modules.line_plot import InputObservationChart, DiscreteActionChart
+from gym_browser_dashboard.modules.line_plot import AddLineChart
 from matplotlib import colors
 import gym
 import numpy as np
@@ -16,7 +16,7 @@ class DummyGymModel(Model):
         self.env = env
         self.obs = self.env.reset()[0] if newgym else self.env.reset()
 
-    def step(self):
+    def __iter__(self):
         while True:
             self.action = np.random.randint(0, 2)
             self.obs, _, termination, *_ = env.step(self.action)
@@ -33,25 +33,17 @@ model = DummyGymModel
 
 env = gym.make("CartPole-v1", render_mode='rgb_array')
 
-######################## Declare Modules #########################
-obs_chart = InputObservationChart(
-    [{"Label": "Cart Pos", "Color": colors.to_hex("red")},
-     {"Label": "Cart Vel", "Color": colors.to_hex("green")},
-     {"Label": "Pol Angl", "Color": colors.to_hex("yellow")},
-     {"Label": "Pol Angl Vel", "Color": colors.to_hex("blue")}]
-)
-
-action_chart = DiscreteActionChart(
-    [{"Label": "Action", "Color": colors.to_hex("red")}])
-render_img = StaticImage(img=Image.open('panzi.jpg'), location='left', width=160, height=110)
-
-render_gym_canvas = RenderGymEnv()
-random_matrix = RenderRandomMatrix()
-
-##################################################################
 
 model_params = dict(env=env)  # add any other initialization parameters here
-server = CustomAPI(model, [render_gym_canvas,  random_matrix, render_img, obs_chart, action_chart], model_params)
+server = CustomAPI(model, [RenderGymEnv(width=480, height=320),
+                           RenderRandomMatrix(width=480, height=320),
+                           StaticImage(img=Image.open('panzi.jpg'), location='left',  height=110),
+                           AddLineChart(names=['Cart Pos', 'Cart Vel', 'Pole Angle', 'Pole Angle Vel'],
+                                        render=lambda m: m.obs.tolist(), location='right'),
+                           AddLineChart(series=
+                                        [{"Label": "Action", "Color": colors.to_hex("red")}],
+                                        render=lambda m: [m.action], location='right')
+                           ], model_params)
 
 if __name__ == "__main__":
     connected = False

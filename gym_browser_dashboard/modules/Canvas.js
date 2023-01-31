@@ -1,6 +1,8 @@
 var Canvas = function(id, penv_width, penv_height, location, add_checkb) {
 	let imgid = "img" + id
-	var canvas_tag = "<img src='' width='" + penv_width  + "' height='" + penv_height + "' id=" + imgid + ">"
+	var canvas_tag = "<img src='' " +
+	((penv_width != null)?("width='" + penv_width + "'"):"") +
+		((penv_height != null)?(" height='" + penv_height + "'"):"") + " id=" + imgid + ">"
 	var canvas = $(canvas_tag)[0];
 	location = location + 'Col'
 	$("#" + location).append(canvas);
