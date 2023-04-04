@@ -1,6 +1,5 @@
 import abc
 import sty
-import torch
 import numpy as np
 import random
 class Model(abc.ABC):
@@ -9,7 +8,6 @@ class Model(abc.ABC):
         self.seed = seed
         self.gfx = gfx
         print(sty.fg.red + f"SEED : {self.seed}" + sty.rs.fg)
-        torch.manual_seed(seed)
         np.random.seed(seed)
         random.seed(seed)
 

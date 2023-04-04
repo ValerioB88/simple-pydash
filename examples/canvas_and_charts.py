@@ -3,7 +3,6 @@ import uvicorn
 from browser_dashboard.modules.canvas import RenderGymEnv, RenderRandomMatrix, StaticImage
 from browser_dashboard.modules.line_plot import AddLineChart
 from browser_dashboard.modules.text_info import TextInfo
-from matplotlib import colors
 import gym
 import numpy as np
 from browser_dashboard.model import Model
