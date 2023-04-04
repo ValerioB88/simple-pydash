@@ -65,7 +65,7 @@ The `Canvas` and `LinePlot` modules are highly flexible. In fact, you can do mos
 #### Canvas
 The `Canvas` module plots an image in the middle of the page. This could be the openAI rendering (`RenderGymEnv` module) or any other image (e.g. a matplotlib figure, `RandomMatrix` in the example). You can also plot a `StaticImage` which won't be updated. 
 
-Writing new `Canvas` is extremely easy. You can see how simple is to plot something new by looking at the `RenderGymEnv` class: 
+Extending `Canvas` is extremely easy. You can see how simple is to plot something new by looking at the `RenderGymEnv` class: 
 
 ```python
 class RenderGymEnv(Canvas):
@@ -86,6 +86,8 @@ The `LinePlot` module produces line plots, but it can also produce scatter plots
 AddLineChart(names=['action'], render=lambda m: [m.action], location='right')
 ```
 
+### Speed up the simulation
+ A way to speed up the simulation is to simply change the `update_gfx_every_x_steps` parameter in the `CustomAPI`. If you set it to, for example, 10, the gfx will be updated each 10 steps speeding it up a lot. In the example script is set to 1. 
 
 ### Acknowledgement
 To develop the UI, I learnt a lot from the [Mesa](https://mesa.readthedocs.io/en/latest/) project, which is however written in [tornado](https://www.tornadoweb.org/en/stable/). You can still see the Mesa footprint in the UI layout :)
