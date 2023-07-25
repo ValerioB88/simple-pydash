@@ -1,21 +1,19 @@
-## Browser Dashboard
+## SimplePyDash
 <img src="demo.gif">
 
-A simple and modular dashboard that runs directly in the browser. Ideal for headless servers.
-This was designed to be used in conjunction with OpenAI Gym Environments. However, I have now used many times with in totally different scenario, so I am dropping the "Gym" from the name. You can still use it with Gym Envs if you want to! But you can do much more with this.
+A simple and modular dashboard that runs directly in the browser. Designed for real time plotting using only Python, with simplicity as its main aim.
+
+This was originally designed to be used in conjunction with OpenAI Gym Environments, to plot agent's behaviour in real time. It's still great for that, but it can be used for many other cases.
 
 
-This is _not_ designed to be used during training, but as a tool for analysing the behaviour of some agents in details, through the help of dynamic visualization.
-
-It uses [FastAPI](https://fastapi.tiangolo.com/) web framework and plots stuff through [WebSocketing](https://en.wikipedia.org/wiki/WebSocket). WebSocket uses TCP so you might get some lag. Feel free to re-make this with webRTC if you fancy!
+It uses [FastAPI](https://fastapi.tiangolo.com/) web framework and uses [WebSocket](https://en.wikipedia.org/wiki/WebSocket) for two-ways communication.
 
 #### Requirements:
 `pip install fastapi "uvicorn[standard]"`
 
-I suggest also installing `gym` if you want to try the example:
-
+I suggest also installing `gym` if you want to see how to implement gym env in it:
 `pip install gym`
-
+This is only used in an the `examples/openai_gym.py` and is otherwise not required. 
 
 ### Installation
 To install you can _either_:
@@ -24,18 +22,45 @@ To install you can _either_:
 **OR**
 - clone/fork the repo, then install in editable mode (do this if you plan to change stuff): `pip -e {cloned folder}`  
  
-### Usage 
-The best way to getting started is to take a look at the example: `examples/canvas_and_charts.py`. 
+### Examples 
+The best way to getting started is to take a look at the examples: `examples/openai_gym.py` requires a gym library and it will plot a gym environment. `examples/generic.py` does not require a gym library.  
 
 Run it with:
-`cd {repo folder}; python -m examples.canvas_and_charts`. The script will try to use the first available port starting at `8000`. Open your browser at `localhost:8000` (or the used port, indicated in the output of the console).
+`cd {repo folder}; python -m examples.gym`. The script will try to use the first available port starting at `8000`. Open your browser at `localhost:8000` (or the used port, indicated in the output of the console).
 
 **If you are running the script on a server**, you need to do port forwarding. Open a new terminal on your local machine and type `ssh -L {portnum}:localhost:{portnum} {username}@{machinename}`, e.g. `ssh -L 8000:localhost:8000 val@titan.it`. Then open the browser at `localhost:8000`, and you should see the dashboard.
 
-**TIP**: if the simulation seems to lag, try to hit `Reset` on the dashboard once. For some reason the first run is laggy, then it goes pretty smooth.
+### Getting Started 
+SimplePyDash organizes your dashboard into columns, 2 by default.  The main object `CustomAPI` will take a `model_obj` and a series of `DashboardComponents`. The user-defined model is a simple iterator which does the computation, e.g. runs a neural network and returns an action. The `DashboardComponents` are widgets that can be plotted in the browser. I provide several defaults widgets that should be enough for many cases: `HeatMap`, `LinePlot`, `StaticImage`, `TextInfo`, and `RenderGymEnv`. The `plot` widgest such as `HeatMap` and `LinePlot` are based on the graphic library [Plotly](https://plotly.com/python/). This means that it's really easy to add some Plotly graph to you widget list. 
+
+Let's take a look at a simple declaration of a `CustomAPI` object:
+```python
+server = CustomAPI(
+    model_obj=model,
+    dash_comps=[
+        GeneralTextInfo(location_col_idx=0, use_scroll=False),
+        HeatMap(
+            get_new_data_fun=lambda m: np.random.randn(10, 10),
+            clr_min=-1,
+            clr_max=1,
+            location_col_idx=1,
+        ),
+        AppendLinePlot(
+            legends=["Cart Pos", "Cart Vel", "Pole Angle", "Pole Angle Vel"],
+            get_new_data_fun=lambda m: [[i] for i in m.obs.tolist()],
+            location_col_idx=1,
+            height=200,
+        ),
+    model_params={'env': gym.make("CartPole-v1", render_mode="rgb_array")},
+)
+```
+We'll talk about the `model_obj` in a second. For now consider the `dash_comps` (DashComponents). We provide 3 components, and organize them in 3 different columns, as specified by the fact that their `location_col_idx` is 0, 1, 2. `SimplePyDash` automatically creates a dashboard with 3 columns. If the `location_col_idx` of the `AppendLinePlot` was `=1`, this would automatically create 2 columns, and place the `GeneralTextInfo` widget in the first one, and the `HeatMap` and `AppendLinePlot` in the second column. Notice that the order in which the widgets are placed in a column corresponds to the order they are passed to `dash_comps`. 
+
+Each `DashComponent` will have a default `width` and `height`. However, you can modify one or both of them to make the widget bigger or smaller. This will not resize the whole column. 
 
 ### Model
-To run your own agent and your own environment (in this example is a gym environment,but doesn't need to), you need to wrap both of them in a subclass of `Model`. This must contain the methods `__iter__` and `stop`. Critically, `__iter__` needs to return an iterator. This is an example of a model for any gym environment (passed through the `env` parameter):
+The `Model` must be an infinite iterator. Inside it, it will compute stuff that you want to plot.
+ This is an example of a model for any gym environment (passed through the `env` parameter):
 
 ```python
 class DummyGymModel(Model):
@@ -56,14 +81,14 @@ class DummyGymModel(Model):
         env.reset()
 ```
 (in a real life scenario, this class will also contain a neural network for taking the action).
-It should be simple to adapt your own code to this setup. 
+It should be simple to adapt your own code to this setup. This `DummyGymModel` only has one parameter: `env`, but you can customize this class as you with. The parameters are passed to the `CustomAPI` object as `model_params`. 
 
-### Modules 
-To plot stuff in the browser you use `Modules`. I provide some basic ones in `modules/`.  Each module consists of a Python and Javascript file. The Python file generates the data that are passed to the Javascript objects, which plots the data in the browser. 
-The `Canvas` and `LinePlot` modules are highly flexible. In fact, you can do most stuff by just subclassing on of the two. 
+### Plotting Dashboard Components
+`HeatMap` and `AppendLinePlot` are plotting components. They expect a `get_new_data_fun`, a Callable that returns the data to plot. Since a LinePlot can have multiple lines, and at each iteration you can add one or more datapoints to each line, the input to `AppendLinePlot` is a list of list: as many list as the lines, each list containing as many datapoints as you want to add. The `HeatMap` is just expecting a matrix. 
+
 
 #### Canvas
-The `Canvas` module plots an image in the middle of the page. This could be the openAI rendering (`RenderGymEnv` module) or any other image (e.g. a matplotlib figure, `RandomMatrix` in the example). You can also plot a `StaticImage` which won't be updated. 
+The `Canvas` module returns an image, which can be used for obtaining animation in the browser. This could be the openAI rendering (`RenderGymEnv` module) or any other image (e.g. a matplotlib figure, a static image, etc).
 
 Extending `Canvas` is extremely easy. You can see how simple is to plot something new by looking at the `RenderGymEnv` class: 
 
@@ -76,18 +101,10 @@ class RenderGymEnv(Canvas):
 ```
 
 
-The `Canvas` module always expects the render output to be a `base64` string. You can convert a PIL image with `PIL2base64`. If you have a matplotlib fiugre use the `fig2PIL` and then the `PIL2base64` (as in the `RandomMatrix` class).
+The `Canvas` module always expects the render output to be a `base64` string. You can convert a PIL image with `PIL2base64`. If you have a matplotlib figure use the `fig2PIL` and then the `PIL2base64`.
 
-You can also decide where to put the each canvas with the `location` parameter (not implemented for `LinePlot` yet).
 
-#### LinePlot
-The `LinePlot` module produces line plots, but it can also produce scatter plots if `show_lines` parameters is set to `False`. I use [Chart.js](https://www.chartjs.org/), and I provide a couple of pre-made lineplots: one for plotting the observations and the other for plotting the taken action. The `LinePlot` Javascript object expects the data to be in the format `[[{'x': 0, 'y': 1}, {'x': 10, 'y': 1}]]`, where the nested list is used because you can potentially have multiple lines in the same plot. You can either return this format directly or use the `AddLineChart` object, which will assume that each time you pass values to render, the `x` step needs to be incremented. You can use it in this way:
-```python
-AddLineChart(names=['action'], render=lambda m: [m.action], location='right')
-```
 
-### Speed up the simulation
- A way to speed up the simulation is to simply change the `update_gfx_every_x_steps` parameter in the `CustomAPI`. If you set it to, for example, 10, the gfx will be updated each 10 steps speeding it up a lot. In the example script is set to 1. 
-
-### Acknowledgement
-To develop the UI, I learnt a lot from the [Mesa](https://mesa.readthedocs.io/en/latest/) project, which is however written in [tornado](https://www.tornadoweb.org/en/stable/). You can still see the Mesa footprint in the UI layout :)
+### Settings and Speeding Up
+When you run the browser dashboard, you will see in the navigation bar on top a `Setting` dropdown menu. Here you can specify the requested FPS. Notice that the WebSocket will do its best to keep up with the indicated number, but it's not guarantee to actually match it. 
+By default, `SimplyPyDash` will (1) run one iteration of the model object, (2) compute the result for each dashboard component, (3) render the result in the browser. However, to speed up the rendering more, you might want to perform (1) and (2) multiple times before passing the data to the web browser. To do that, change the `Num. Model Iters x Gfx Update` value in the Settings. This can speed up the simulation ad lot.
