@@ -1,27 +1,31 @@
 import json
-import PIL.Image as Image
 import os
-import base64
-from io import BytesIO
-import matplotlib.pyplot as plt
-import numpy as np
+from typing import Callable, List
 import plotly
 from simple_pydash.modules.dashboard_component import DashboardComponent
 import abc
-import PIL.Image
 import plotly.graph_objects as go
 
 
 class PlotlyComponents(DashboardComponent, abc.ABC):
     local_includes = [os.path.dirname(__file__) + "/PlotlyPlot.js"]
 
-    def __init__(self, location_col_idx, width=None, height=None, **init_figure_args):
+    def __init__(
+        self, location_col_idx, title="", width=None, height=None, **init_figure_args
+    ):
         super().__init__(location_col_idx, width=width, height=height)
         new_element = (
             f"new PlotlyPlot('{self.location_col_idx}', {self.width}, {self.height})"
         )
         self.js_code = "elements.push(" + new_element + ")"
         self.layout = go.Layout(
+            title={
+                "text": title,
+                "y": 0.95,
+                "x": 0.5,
+                "xanchor": "center",
+                "yanchor": "top",
+            },
             margin=dict(
                 l=5,
                 r=5,
@@ -42,11 +46,20 @@ class PlotlyComponents(DashboardComponent, abc.ABC):
         pass
 
 
-class LinePlot(PlotlyComponents, abc.ABC):
-    def init_figure(self, legends=None, max_x=50):
+class ScatterPlot(PlotlyComponents, abc.ABC):
+    def init_figure(self, mode="lines", legends: List[str] = None, range_x=50):
+        """_summary_
+
+        Args:
+            mode (str, optional): 'lines', 'markers', 'text'. Defaults to "lines".
+            legends (List[str], optional): A list of legends. Defaults to None.
+            range_x (int, optional): The range to show on the horizontal axis. Defaults to 50.
+        """
+        self.mode = mode
+
         self.layout.update(
             dict(
-                legend=dict(y=1.25, x=0.5, xanchor="center", orientation="h"),
+                legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
                 shapes=[
                     dict(
                         type="rect",
@@ -64,25 +77,30 @@ class LinePlot(PlotlyComponents, abc.ABC):
                 ],
             )
         )
-        self.max_x = max_x
+        self.range_x = range_x
         self.legends = legends
         self.data = [[]] * len(legends)
         self.traces = [
-            go.Scatter(y=self.data[idx], mode="lines", name=l)
+            go.Scatter(y=self.data[idx], mode=self.mode, name=l)
             for idx, l in enumerate(legends)
         ]
         self.fig = go.Figure(data=self.traces, layout=self.layout)
 
     def reset(self):
-        self.init_figure(self.legends, self.max_x)
+        self.init_figure(self.mode, self.legends, self.range_x)
 
 
-class AppendLinePlot(LinePlot):
+class AppendScatterPlot(ScatterPlot):
     """
     Appends data to existing plot lines. The user needs to provide `get_new_data_fun`, a function that returns a nested list of data points. Each sublist represents a separate line on the plot, corresponding to the legends. The number of elements (data points) in each sublist may vary.
     """
 
-    def __init__(self, get_new_data_fun, **kwargs):
+    def __init__(self, get_new_data_fun: Callable, **kwargs):
+        """
+        Args:
+            get_new_data_fun (Callable): a Callable that returns a set of point to append to the plot.
+
+        """
         self.get_new_data_fun = get_new_data_fun
         legends = ["Line 1"] if "legends" not in kwargs else kwargs.pop("legends")
 
@@ -96,7 +114,7 @@ class AppendLinePlot(LinePlot):
                 self.legends.append(f"Line {len(self.legends) + i + 1}")
                 self.data_counts.append(0)
                 self.fig.add_trace(
-                    go.Scatter(y=[], mode="lines", name=self.legends[-1])
+                    go.Scatter(y=[], mode=self.mode, name=self.legends[-1])
                 )
 
         # If new_data has fewer traces, fill up the remainder with None
@@ -107,8 +125,8 @@ class AppendLinePlot(LinePlot):
             self.data_counts[i] += len(new_data[i])  # Update the count for each line
 
             updated_y_data = list(self.fig.data[i].y) + new_data[i]
-            if len(updated_y_data) > self.max_x:
-                updated_y_data = updated_y_data[-self.max_x :]
+            if len(updated_y_data) > self.range_x:
+                updated_y_data = updated_y_data[-self.range_x :]
 
             # Update the x-values as well
             updated_x_data = list(
@@ -130,13 +148,31 @@ class HeatMap(PlotlyComponents):
         self.get_new_data_fun = get_new_data_fun
         super().__init__(**kwargs)
 
-    def init_figure(self, clr_min=None, clr_max=None, x_legends=None, y_legends=None):
+    def init_figure(
+        self,
+        clr_min=None,
+        clr_max=None,
+        x_legends=None,
+        y_legends=None,
+        show_colormap=True,
+    ):
+        self.layout.update(
+            margin=dict(
+                l=15,
+                r=15,
+                b=15,
+                t=35,
+                pad=0,
+            )
+        )
+        self.show_colormap = show_colormap
         self.x_legends, self.y_legends = x_legends, y_legends
         self.clr_min, self.clr_max = clr_min, clr_max
         self.fig = go.Figure(
             data=go.Heatmap(
                 z=[[]],
                 x=x_legends,
+                showscale=show_colormap,
                 y=y_legends,
                 zmin=clr_min,
                 zmax=clr_max,
@@ -159,4 +195,10 @@ class HeatMap(PlotlyComponents):
         return fig_json
 
     def reset(self):
-        self.init_figure(self.clr_min, self.clr_max, self.x_legends, self.y_legends)
+        self.init_figure(
+            self.clr_min,
+            self.clr_max,
+            self.x_legends,
+            self.y_legends,
+            self.show_colormap,
+        )

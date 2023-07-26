@@ -2,9 +2,12 @@ import base64
 import abc
 from io import BytesIO
 from pathlib import Path
+import random
 from PIL import Image
 import PIL
 import io
+
+from matplotlib import pyplot as plt
 from simple_pydash.modules.dashboard_component import DashboardComponent
 
 
@@ -63,3 +66,16 @@ class StaticImage(Canvas):
         if not self.rendered:
             self.rendered = True
             return PIL2base64(self.img)
+
+
+# This is just an example of how one would render a matplotlib plot. Notice that this is discouraged, and Plotly will be almost always faster.
+class MatplotlibPlot(Canvas):
+    def render(self, model):
+        fig = plt.figure()
+        plt.bar(
+            ["pippo", "paperino", "pluto"], [random.randint(0, 10) for _ in range(3)]
+        )
+        plt.tight_layout()
+        b64 = PIL2base64(fig2PIL(fig))
+        plt.close(fig)
+        return b64

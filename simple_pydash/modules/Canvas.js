@@ -23,7 +23,5 @@ function Canvas(width, height, location, add_checkb) {
     }
   };
 
-  this.reset = function () {
-    // reset logic goes here
-  };
+  this.reset = function () {};
 }

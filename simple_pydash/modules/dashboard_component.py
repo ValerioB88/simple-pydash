@@ -1,6 +1,5 @@
 import abc
 
-
 def check_none(x):
     return x if x is not None else "null"
 

@@ -1,4 +1,5 @@
-from simple_pydash.modules.plotlyplot import AppendLinePlot, HeatMap
+from simple_pydash.modules.canvas import MatplotlibPlot
+from simple_pydash.modules.plotlyplot import AppendScatterPlot, HeatMap
 from simple_pydash.server import CustomAPI
 import uvicorn
 from simple_pydash.modules.text_info import GeneralTextInfo, TextInfo
@@ -10,13 +11,17 @@ import PIL.Image as Image
 class DummyModel(Model):
     tot_steps = 0
 
-    def __init__(self, **kwargs):
+    def __init__(self, num_lines, **kwargs):
+        self.num_lines = num_lines
         super().__init__(**kwargs)
-        self.rnd_values = np.random.randn(3, 2)
+        # self.rnd_matrix = np.random.randn(10, 10)
+        # self.rnd_lines = np.random.randint(-3, 3, (3, 1))
 
     def __iter__(self):
         while True:
-            self.rnd_values = np.random.randn(3, 2)
+            self.rnd_matrix = np.random.randn(10, 10)
+            self.rnd_lines = np.random.randint(-3, 3, (self.num_lines, 1))
+
             self.tot_steps += 1
             yield None
 
@@ -24,38 +29,38 @@ class DummyModel(Model):
         pass
 
 
-model = DummyModel
-
-model_params = dict()  # add any other initialization parameters here
-
 server = CustomAPI(
-    model_obj=model,
+    model_obj=DummyModel,
     dash_comps=[
         GeneralTextInfo(location_col_idx=0, use_scroll=False),
+        MatplotlibPlot(location_col_idx=0, width=500),
+        AppendScatterPlot(
+            get_new_data_fun=lambda m: np.random.randn(2, 2).tolist(),
+            location_col_idx=0,
+            mode="markers",
+            width=500,
+            height=350,
+        ),
         HeatMap(
-            get_new_data_fun=lambda m: m.rnd_values,
-            # width=500,
-            # height=300,
+            get_new_data_fun=lambda m: m.rnd_matrix,
             clr_min=-1,
             clr_max=1,
-            location_col_idx=1,
+            location_col_idx=2,
+            height=420,
         ),
-        AppendLinePlot(
+        AppendScatterPlot(
             legends=[
                 "Rnd",
                 "Rnd2",
             ],  # notice that the number of legends provided doen't need to match the number of lines plotted. This will be handled automatically
-            get_new_data_fun=lambda m: m.rnd_values.tolist(),
-            location_col_idx=2,
+            get_new_data_fun=lambda m: m.rnd_lines.tolist(),
+            location_col_idx=1,
             width=500,
             height=350,
         ),
-        AppendLinePlot(
-            get_new_data_fun=lambda m: [np.random.randn(3, 2).tolist()],
-            location_col_idx=2,
-        ),
     ],
-    model_params=model_params,
+    model_params=dict(num_lines=3),
+    wide_page=True,
 )
 
 if __name__ == "__main__":

@@ -101,12 +101,16 @@
 </nav>
 
 
-<div class="container-fluid">
-    {% for column_id in column_ids %}
+{% if wide_page %}
+    <div class="container-fluid">
+{% else %}
+    <div class="container">   
+{% endif %}
+ {% for column_id in column_ids %}
         <div class="col-xs-{{ 12//num_columns }}" id="{{ column_id }}Col"></div>
     {% endfor %}
-
 </div>
+
 {% for file_name in package_includes %}
 <script src="/static/js/{{ file_name }}" type="text/javascript"></script>
 {% endfor %}

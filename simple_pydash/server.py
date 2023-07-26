@@ -1,5 +1,3 @@
-import asyncio
-from datetime import datetime
 import time
 from fastapi import WebSocket
 import os
@@ -30,14 +28,13 @@ class CustomAPI(FastAPI):
         dash_comps,
         model_params=None,
         seed=None,
-        # update_gfx_every_x_steps=1,
         num_widget_columns=None,
         fast_forward_update=100,
+        wide_page=None,
     ):
         self.seed = int(time.time()) % (2**32 - 1) if seed is None else seed
         self.iters_per_gfx_update = 1
         self.fast_forward_update = fast_forward_update
-        # self.update_gfx_every_x_steps = update_gfx_every_x_steps
         self.model_obj = model_obj
         self.model_params = model_params if model_params is not None else {}
         self.local_includes = []
@@ -58,6 +55,11 @@ class CustomAPI(FastAPI):
             )
             num_widget_columns = 6
         self.num_widget_columns = max(widget_max_cols, num_widget_columns)
+
+        self.wide_page = wide_page
+        if self.wide_page is None:
+            self.wide_page = True if self.num_widget_columns > 2 else False
+
         for i in self.dash_comps:
             self.package_includes.extend(i.package_includes)
             self.local_includes.extend(i.local_includes)
@@ -83,6 +85,7 @@ class CustomAPI(FastAPI):
                     "js_code": self.js_code,
                     "column_ids": [str(i) for i in range(self.num_widget_columns)],
                     "num_columns": self.num_widget_columns,
+                    "wide_page": self.wide_page,
                 },
             )
 

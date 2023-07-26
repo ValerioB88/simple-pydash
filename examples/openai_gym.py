@@ -5,7 +5,7 @@ from simple_pydash.modules.canvas import (
     StaticImage,
 )
 from simple_pydash.modules.inject_html import Inject_HTML
-from simple_pydash.modules.plotlyplot import AppendLinePlot, HeatMap
+from simple_pydash.modules.plotlyplot import AppendScatterPlot, HeatMap
 
 from simple_pydash.modules.text_info import GeneralTextInfo, TextInfo
 from matplotlib import colors
@@ -29,48 +29,44 @@ class DummyGymModel(Model):
     def __iter__(self):
         while True:
             self.action = np.random.randint(0, 2)
-            self.obs, _, termination, *_ = env.step(self.action)
+            self.obs, _, termination, *_ = self.env.step(self.action)
             self.tot_steps += 1
             if termination:
-                self.obs = env.reset()[0] if newgym else self.env.reset()
+                self.obs = self.env.reset()[0] if newgym else self.env.reset()
             yield None
 
     def stop(self):
-        env.reset()
+        self.env.reset()
 
 
-model = DummyGymModel
-
-env = gym.make("CartPole-v1", render_mode="rgb_array")
-
-
-model_params = dict(env=env)  # add any other initialization parameters here
 server = CustomAPI(
-    model_obj=model,
+    model_obj=DummyGymModel,
     dash_comps=[
         GeneralTextInfo(
             location_col_idx=0,
             use_scroll=False,
             width=480,
         ),
-        RenderGymEnv(width=480, height=320),
+        RenderGymEnv(width=480, height=320, location_col_idx=0),
         HeatMap(
+            title="Random Matrix",
             get_new_data_fun=lambda m: np.random.randn(10, 10),
-            width=500,
+            width=400,
+            height=400,
             clr_min=-1,
             clr_max=1,
-            height=300,
-            location_col_idx=2,
+            location_col_idx=1,
+            show_colormap=False,
         ),
-        StaticImage(img=Image.open("panzi.jpg"), location_col_idx=2),
-        AppendLinePlot(
+        StaticImage(img=Image.open("assets/panzi.jpg"), location_col_idx=0),
+        AppendScatterPlot(
             legends=["Cart Pos", "Cart Vel", "Pole Angle", "Pole Angle Vel"],
             get_new_data_fun=lambda m: [[i] for i in m.obs.tolist()],
             location_col_idx=1,
             width=500,
             height=200,
         ),
-        AppendLinePlot(
+        AppendScatterPlot(
             legends=["Action"],
             get_new_data_fun=lambda m: [[m.action]],
             location_col_idx=1,
@@ -78,8 +74,7 @@ server = CustomAPI(
             height=150,
         ),
     ],
-    model_params=model_params,
-    num_widget_columns=3,
+    model_params=dict(env=gym.make("CartPole-v1", render_mode="rgb_array")),
 )
 
 if __name__ == "__main__":
