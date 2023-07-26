@@ -1,6 +1,6 @@
 
 ## SimplePyDash
-![Demo](assets/new_demo.gif)
+![Demo](https://raw.githubusercontent.com/ValerioB88/simple-pydash/master/assets/new_demo.gif)
 
 **SimplePyDash** is a versatile, browser-based dashboard designed for real-time data plotting. With a focus on simplicity, it allows Python developers to easily visualize data streams without complex setup or dependencies.
 
@@ -8,16 +8,17 @@ Although originally developed to facilitate real-time plotting of OpenAI Gym env
 
 Under the hood, SimplePyDash leverages the [FastAPI](https://fastapi.tiangolo.com/) web framework and uses [WebSocket](https://en.wikipedia.org/wiki/WebSocket) for bidirectional communication.
 
-### Requirements:
-Use the following command to install necessary dependencies:
-```
-pip install fastapi "uvicorn[standard]"
-```
-For working with OpenAI Gym environments, install the `gym` library using the command:
-```
-pip install gym
-```
-Note: This library is only needed for running the `examples/openai_gym.py` example and is otherwise not mandatory.
+### Requirements
+Running 
+```pip install simple-pydash```
+
+will install all the requirements. Otherwise you can do
+`pip install fastapi uvicorn[standard] numpy Pillow plotly sty jinja2 matplotlib`.
+
+For running the OpenAI Gym example, you additionally need to have  the `gym` library. This is not a requirement for using `simple-pydash`: `
+pip install gym[classic_control]
+`
+
 
 ### Installation
 To install SimplePyDash, you can _either_:
@@ -31,6 +32,11 @@ pip install git+https://github.com/ValerioB88/browser-dashboard.git
 ```
 pip install -e {path_to_cloned_folder}
 ```
+
+**OR**
+- from PyPl:
+```pip install simple-pydash```
+(this won't include the examples, which you can download from GitHub).
 
 ### Examples 
 The best way to get started is to explore the examples provided. `examples/openai_gym.py` demonstrates plotting a gym environment (requires the `gym` library), while `examples/generic.py` is a more general use case.
@@ -57,7 +63,7 @@ SimplePyDash organizes your dashboard into columns (2 by default). The `CustomAP
 
 SimplePyDash includes several default widgets, including `HeatMap`, `LinePlot`, `StaticImage`, `TextInfo`, and `RenderGymEnv`. The `plot` widgets, such as `HeatMap` and `LinePlot`, are based on the [Plotly](https://plotly.com/python/) graphics library, allowing for easy addition of Plotly graphs to your widget list.
 
-Here's a basic example of a `CustomAPI` object:
+Here's a basic instance of a `CustomAPI` object (see `examples/generic.py` for the full example):
 ```python
 server = CustomAPI(
     model_obj=DummyModel,
@@ -96,10 +102,10 @@ server = CustomAPI(
  
 We'll talk about the `model_obj` in a second. For now consider the `dash_comps` (DashComponents). We provide 5 components: a Text Box, a matplotlib Barplot, a HeatMap, a Scatter plot and a Line plot. Notice that the using matplotlib is discouraged in favour of Plotly, but here we show that it's possible to integrate matplotlib plots within your dashboard.
  `SimplePyDash` automatically arranges these 5 components in 2 columns, as specified by the fact that their `location_col_idx` is 0 and 1:
-![Demo](assets/2cols.png)
+![Demo](https://raw.githubusercontent.com/ValerioB88/simple-pydash/master/assets/2cols.png)
 
  If the `location_col_idx` of the `HeatMap` was `=2`, this would automatically create 3 columns:
- ![Demo](assets/3cols.png)
+ ![Demo](https://raw.githubusercontent.com/ValerioB88/simple-pydash/master/assets/3cols.png)
  Notice that the order in which the widgets are placed in a column corresponds to the order they are passed to `dash_comps`. 
 
 Each `DashComponent` will have a default `width` and `height`. However, you can modify one or both of them to make the widget bigger or smaller. This will not resize the whole column. When using more than 2 columns, `SimplePyDash` will automatically span the whole page, otheewise it will center the columns in the middle of the page. You can control this behaviour by passing `wide_page=True/False` to `CustomAPI`. 
